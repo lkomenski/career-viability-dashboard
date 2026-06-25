@@ -47,7 +47,7 @@ The limitation is that `TOT_EMP` is a stock measure, not a flow measure. It coun
 
 ### Why EP annual openings is the best choice
 
-EP Table 1.2 publishes "occupational openings" — the projected average annual number of positions that need to be filled each year over the 2023-2033 projection period. This combines two components:
+EP Table 1.2 publishes "occupational openings" — the projected average annual number of positions that need to be filled each year over the 2024-2034 projection period. This combines two components:
 
 - **Growth openings:** new positions created by net employment increase
 - **Replacement openings:** positions vacated by retirement, career change, or other separation
@@ -73,5 +73,5 @@ Annual openings correlate with occupation size. Larger occupations generate more
 ## Consequences
 
 - `annual_openings` is sourced from EP Table 1.2. If BLS changes the column position or label in a future EP release, the column-position detection logic in `download_ep()` will need adjustment.
-- The CVI demand signal is a projected forward-looking measure (2023-2033), while the wage signal is a realized backward-looking measure (May 2023). This is intentional — a career viability index should be sensitive to both current market conditions and expected future demand. Document this asymmetry in the dashboard.
+- The CVI demand signal is a projected forward-looking measure (2024-2034), while the wage signal is a realized backward-looking measure (May 2023). This is intentional — a career viability index should be sensitive to both current market conditions and expected future demand. Document this asymmetry in the dashboard.
 - If JOLTS eventually publishes occupation-level data (BLS has been moving in this direction), this decision should be revisited.

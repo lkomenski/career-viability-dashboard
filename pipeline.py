@@ -8,7 +8,7 @@ Career Viability Index scores, and exports a clean CSV for Power BI.
 
 Data sources
   OEWS May 2023  : national flat file from BLS (ZIP download)
-  EP 2023-2033   : Table 1.2 flat file from BLS (XLSX download)
+  EP 2024-2034   : Table 1.2 flat file from BLS (XLSX download)
   BLS API v2     : illustrative timeseries pull for five select occupations
 
 Architecture decisions documented in docs/decisions/.
@@ -36,7 +36,7 @@ BLS_API_URL = "https://api.bls.gov/publicAPI/v2/timeseries/data/"
 # OEWS May 2023 national flat file (all occupations, all industries)
 OEWS_ZIP_URL = "https://www.bls.gov/oes/special-requests/oesm23nat.zip"
 
-# EP Table 1.2 — occupational projections and characteristics, 2023-2033.
+# EP Table 1.2 — occupational projections and characteristics, 2024-2034.
 # If the URL returns 403, download the file manually from the BLS page listed
 # below and set EP_TABLE_LOCAL to the local path. The URL download will be
 # skipped when EP_TABLE_LOCAL is set.
@@ -280,7 +280,7 @@ def download_oews(url: str = OEWS_ZIP_URL) -> pd.DataFrame:
 
 # ── Section 3: Employment Projections Flat File ───────────────────────────────
 #
-# BLS EP Table 1.2 covers projected employment 2023-2033 for ~800 detailed
+# BLS EP Table 1.2 covers projected employment 2024-2034 for ~800 detailed
 # occupations. The key fields for CVI are:
 #   employment_change_pct   — 10-year percent growth (CVI Growth signal)
 #   annual_openings         — average annual projected openings from both growth
@@ -294,7 +294,7 @@ def download_oews(url: str = OEWS_ZIP_URL) -> pd.DataFrame:
 def download_ep(url: str = EP_TABLE_URL, local_path: str = EP_TABLE_LOCAL) -> pd.DataFrame:
     """
     Load BLS EP Table 1.2 and return a clean DataFrame of detailed
-    occupations with growth and openings projections for 2023-2033.
+    occupations with growth and openings projections for 2024-2034.
 
     If local_path is set, reads from disk and skips the network request.
     Otherwise downloads from url. Set EP_TABLE_LOCAL in config if the URL
@@ -305,7 +305,7 @@ def download_ep(url: str = EP_TABLE_URL, local_path: str = EP_TABLE_LOCAL) -> pd
         log.info(f"Reading Employment Projections from local file: {local_path}")
         raw_bytes = Path(local_path).read_bytes()
     else:
-        log.info("Downloading Employment Projections Table 1.2 (2023-2033)…")
+        log.info("Downloading Employment Projections Table 1.2 (2024-2034)…")
         headers = {"User-Agent": "Mozilla/5.0 (compatible; research-pipeline/1.0)"}
         try:
             resp = requests.get(url, headers=headers, timeout=60)
@@ -320,8 +320,10 @@ def download_ep(url: str = EP_TABLE_URL, local_path: str = EP_TABLE_LOCAL) -> pd
         raw_bytes = resp.content
 
     # The BLS EP file has multiple sheets (cover, notes, multiple tables).
-    # Scan every sheet to find the one containing SOC codes in XX-XXXX format.
-    soc_pattern = r"^\d{2}-\d{4}$"
+    # Scan every sheet to find the one containing detailed SOC codes.
+    # Major-group summary codes (XX-0000) are excluded by requiring the
+    # 4-digit part to start with 1-9; only detailed occupations match.
+    soc_pattern = r"^\d{2}-[1-9]\d{3}$"
     xf = pd.ExcelFile(io.BytesIO(raw_bytes))
     log.info(f"  EP file sheets: {xf.sheet_names}")
 
@@ -452,7 +454,7 @@ def pull_illustrative_api(soc_map: dict | None = None) -> pd.DataFrame:
 
 # ── Section 5: Join and SOC Mismatch Detection ───────────────────────────────
 #
-# OEWS uses 2018 SOC codes. EP 2023-2033 also targets 2018 SOC, but the two
+# OEWS uses 2018 SOC codes. EP 2024-2034 also targets 2018 SOC, but the two
 # programs may still diverge: EP aggregates some occupations that OEWS publishes
 # separately, and vice versa. Any SOC code that appears in one file but not the
 # other is flagged here and surfaced as soc_mismatch_flag in the output.
@@ -642,7 +644,7 @@ def export_csv(df: pd.DataFrame, path: Path = OUTPUT_CSV) -> None:
     ]
     final_cols = [c for c in col_order if c in df.columns]
     df[final_cols].to_csv(path, index=False)
-    log.info(f"Exported {len(df)} rows, {len(final_cols)} columns → {path}")
+    log.info(f"Exported {len(df)} rows, {len(final_cols)} columns -> {path}")
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
