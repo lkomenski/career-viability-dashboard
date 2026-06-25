@@ -216,3 +216,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Pipeline output (regenerated on each run — do not commit)
+output/
