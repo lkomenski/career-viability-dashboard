@@ -57,11 +57,11 @@ Full weighting rationale: [ADR-003](docs/decisions/003-cvi-weighting.md)
 ## Pipeline Architecture
 
 ```
-┌─────────────────────┐   ┌─────────────────────┐   ┌──────────────────────────┐
+┌─────────────────────┐   ┌──────────────────────┐   ┌──────────────────────────┐
 │   BLS OEWS ZIP      │   │   BLS EP XLSX        │   │   BLS Timeseries API     │
 │   national flat     │   │   Occupation.xlsx    │   │   5 series (illustrative)│
 │   file, May 2023    │   │   Table 1.2          │   │   EP growth % by SOC     │
-└────────┬────────────┘   └────────┬─────────────┘   └────────────┬─────────────┘
+└────────┬────────────┘   └────────┬─────────────┘   └─────────────┬────────────┘
          │                         │                               │
          v                         v                               v
   download_oews()           download_ep()              pull_illustrative_api()
@@ -71,9 +71,9 @@ Full weighting rationale: [ADR-003](docs/decisions/003-cvi-weighting.md)
          └────────────┬────────────┘                               │
                       │                                            │
                       v                                            │
-         join_and_flag_mismatches()                               │
-         Left join on soc_code                                    │
-         831 rows · 831 matched · 0 unmatched                    │
+         join_and_flag_mismatches()                                │
+         Left join on soc_code                                     │
+         831 rows · 831 matched · 0 unmatched                      │
                       │                                            │
                       └──────────────────┬─────────────────────────┘
                                          │
@@ -87,9 +87,9 @@ Full weighting rationale: [ADR-003](docs/decisions/003-cvi-weighting.md)
                                          │
                                          v
                       ┌──────────────────┴──────────────────┐
-                      │    career_viability_data.csv         │
-                      │    831 rows · 24 columns             │
-                      │    ready for Power BI import         │
+                      │    career_viability_data.csv        │
+                      │    831 rows · 24 columns            │
+                      │    ready for Power BI import        │
                       └─────────────────────────────────────┘
 ```
 
