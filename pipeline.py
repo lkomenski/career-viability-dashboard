@@ -334,7 +334,7 @@ def download_ep(url: str = EP_TABLE_URL, local_path: str = EP_TABLE_LOCAL) -> pd
         probe = xf.parse(sheet, dtype=str, header=None)
         for row_num, (_, row) in enumerate(probe.iterrows()):
             if any(isinstance(v, str) and pd.Series([v]).str.match(soc_pattern).any() for v in row):
-                target_sheet = sheet
+                target_sheet = str(sheet)
                 data_start_row = row_num
                 break
         if target_sheet is not None:
@@ -366,25 +366,35 @@ def download_ep(url: str = EP_TABLE_URL, local_path: str = EP_TABLE_LOCAL) -> pd
     df = df[df[soc_col].astype(str).str.strip().str.match(soc_pattern, na=False)].copy()
     log.info(f"  EP detailed occupations: {len(df)}")
 
-    # Map by column position relative to the SOC column.
-    # EP Table 1.2 column order (2023 vintage):
-    #   SOC | Title | Emp2023 | Emp2033 | Change# | Change% | AnnualOpenings | EntryEd | OJT | MedianWage
+    # Log actual column names so the position mapping can be verified and corrected
     cols = list(df.columns)
     soc_idx = cols.index(soc_col)
-
     def col_at(offset: int):
         idx = soc_idx + offset
         return cols[idx] if 0 <= idx < len(cols) else None
 
+    # Column layout for EP Table 1.2, 2024-34 vintage (confirmed by position audit):
+    #   index 0  = occupation title (one position BEFORE the SOC column)
+    #   index 1  = SOC code
+    #   index 2  = Summary/Detail indicator
+    #   index 3  = employment_2024
+    #   index 4  = employment_2034
+    #   index 5-6 = unknown BLS columns (skipped)
+    #   index 7  = employment_change_number
+    #   index 8  = employment_change_pct
+    #   index 9  = unknown
+    #   index 10 = annual_openings
+    #   index 11 = median_annual_wage_ep (bonus cross-check column)
+    #   index 12 = typical_entry_education
     rename = {soc_col: "soc_code"}
     offsets = {
-        1: "occupation_title_ep",
-        2: "employment_2023",
-        3: "employment_2033",
-        4: "employment_change_number",
-        5: "employment_change_pct",
-        6: "annual_openings",
-        7: "typical_entry_education",
+        -1: "occupation_title_ep",
+        2:  "employment_2024",
+        3:  "employment_2034",
+        6:  "employment_change_number",
+        7:  "employment_change_pct",
+        9:  "annual_openings",
+        11: "typical_entry_education",
     }
     for offset, field in offsets.items():
         c = col_at(offset)
@@ -393,7 +403,7 @@ def download_ep(url: str = EP_TABLE_URL, local_path: str = EP_TABLE_LOCAL) -> pd
 
     df = df[[c for c in rename if c in df.columns]].rename(columns=rename)
 
-    for col in ["employment_2023", "employment_2033", "employment_change_number",
+    for col in ["employment_2024", "employment_2034", "employment_change_number",
                 "employment_change_pct", "annual_openings"]:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce")
@@ -619,8 +629,8 @@ def export_csv(df: pd.DataFrame, path: Path = OUTPUT_CSV) -> None:
         "wage_75th_pct",
         "employment_count",
         # EP source measures
-        "employment_2023",
-        "employment_2033",
+        "employment_2024",
+        "employment_2034",
         "employment_change_number",
         "employment_change_pct",
         "annual_openings",
